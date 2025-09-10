@@ -108,6 +108,7 @@ export class MemStorage implements IStorage {
       ...insertExperience,
       id,
       liked: insertExperience.liked ?? null,
+      saved: insertExperience.saved ?? false,
       notes: insertExperience.notes ?? null,
       createdAt: new Date() 
     };
@@ -120,7 +121,30 @@ export class MemStorage implements IStorage {
     if (!existing) {
       throw new Error('Experience not found');
     }
-    const updated = { ...existing, ...updates };
+    
+    // Create sanitized update object with proper types
+    const sanitized: Partial<InsertUserStrainExperience> = {};
+    
+    if (updates.liked !== undefined) {
+      sanitized.liked = updates.liked ?? null;
+    }
+    if (updates.saved !== undefined) {
+      sanitized.saved = updates.saved;
+    }
+    if (updates.notes !== undefined) {
+      sanitized.notes = updates.notes;
+    }
+    if (updates.userId !== undefined) {
+      sanitized.userId = updates.userId;
+    }
+    if (updates.strainId !== undefined) {
+      sanitized.strainId = updates.strainId;
+    }
+    
+    const updated = { 
+      ...existing, 
+      ...sanitized
+    };
     this.userStrainExperiences.set(id, updated);
     return updated;
   }

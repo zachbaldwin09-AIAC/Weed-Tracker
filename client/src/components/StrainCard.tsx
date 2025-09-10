@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertUserStrainExperience } from "@shared/schema";
+import type { InsertUserStrainExperience, UserStrainExperience } from "@shared/schema";
 
 interface StrainCardProps {
   strain: {
@@ -25,7 +25,7 @@ interface StrainCardProps {
 }
 
 export function StrainCard({ strain, userExperience }: StrainCardProps) {
-  const [liked, setLiked] = useState(userExperience?.liked);
+  const [liked, setLiked] = useState<boolean | null>(userExperience?.liked ?? null);
   const [notes, setNotes] = useState(userExperience?.notes || "");
   const [saved, setSaved] = useState(userExperience?.saved || false);
   const [showNotes, setShowNotes] = useState(false);
@@ -61,14 +61,14 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
 
   const handleLike = () => {
     const newLiked = liked === true ? null : true;
-    console.log(`Liked strain: ${strain.name}`);
+    console.log(`Like toggled for ${strain.name}: ${liked} -> ${newLiked}`);
     setLiked(newLiked);
     saveExperienceMutation.mutate({ liked: newLiked, notes: notes || null });
   };
 
   const handleDislike = () => {
     const newLiked = liked === false ? null : false;
-    console.log(`Disliked strain: ${strain.name}`);
+    console.log(`Dislike toggled for ${strain.name}: ${liked} -> ${newLiked}`);
     setLiked(newLiked);
     saveExperienceMutation.mutate({ liked: newLiked, notes: notes || null });
   };
@@ -77,7 +77,11 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
     const newSaved = !saved;
     console.log(`${saved ? 'Unsaved' : 'Saved'} strain: ${strain.name}`);
     setSaved(newSaved);
-    // TODO: Implement saved strains functionality
+    saveExperienceMutation.mutate({ liked, saved: newSaved, notes: notes || null });
+    toast({
+      title: newSaved ? "Strain Saved" : "Strain Removed",
+      description: newSaved ? "Added to your saved strains." : "Removed from your saved strains.",
+    });
   };
 
   const handleNotesChange = (value: string) => {
@@ -86,7 +90,7 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
   };
 
   const handleSaveNotes = () => {
-    saveExperienceMutation.mutate({ liked, notes: notes || null });
+    saveExperienceMutation.mutate({ liked, saved, notes: notes || null });
     toast({
       title: "Notes Saved",
       description: "Your notes have been saved successfully.",

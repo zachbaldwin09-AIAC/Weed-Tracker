@@ -22,6 +22,7 @@ export const userStrainExperiences = pgTable("user_strain_experiences", {
   userId: varchar("user_id").notNull(),
   strainId: varchar("strain_id").notNull(),
   liked: boolean("liked"), // true for like, false for dislike, null for no rating
+  saved: boolean("saved").default(false), // true if user saved/bookmarked this strain
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -42,6 +43,7 @@ export const insertUserStrainExperienceSchema = createInsertSchema(userStrainExp
   userId: true,
   strainId: true,
   liked: true,
+  saved: true,
   notes: true,
 });
 
