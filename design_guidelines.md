@@ -72,6 +72,4 @@ Minimal and purposeful:
 - Progressive web app capabilities for app-like experience
 
 ## Images
-**Strain Photography**: High-quality, consistent strain photos with neutral backgrounds. Each strain card features a square crop image showing the cannabis flower clearly. No hero image - focus remains on functional strain tracking interface.
-
 **Iconography**: Simple, medical-inspired icons using Heroicons for consistency. Cannabis leaf icons used sparingly and tastefully integrated.

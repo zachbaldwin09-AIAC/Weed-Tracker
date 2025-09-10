@@ -2,7 +2,7 @@
 
 ## Overview
 
-A personal cannabis strain tracking application that allows users to discover, rate, and journal their experiences with different marijuana strains. The app features strain discovery through manual entry or photo analysis of packaging, personal rating system with thumbs up/down voting, note-taking capabilities, and a clean mobile-first interface inspired by health tracking apps like MyFitnessPal and cannabis platforms like Leafly.
+A personal cannabis strain tracking application that allows users to discover, rate, and journal their experiences with different marijuana strains. The app features manual strain entry, personal rating system with thumbs up/down voting, note-taking capabilities, and a clean mobile-first interface inspired by health tracking apps like MyFitnessPal and cannabis platforms like Leafly.
 
 ## User Preferences
 
@@ -22,7 +22,6 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js server
 - **Language**: TypeScript with ES modules
 - **API**: REST endpoints for CRUD operations on strains and user experiences
-- **File Handling**: Multer for image upload processing with 10MB limit
 - **Storage**: In-memory storage with interface abstraction for future database integration
 
 ### Data Storage Solutions
@@ -61,10 +60,4 @@ Preferred communication style: Simple, everyday language.
 - **@replit/vite-plugin-runtime-error-modal**: Development error overlay
 - **@replit/vite-plugin-cartographer**: Replit-specific development tooling
 
-### AI Integration
-- **OpenAI GPT-5**: Image analysis for strain packaging recognition and data extraction
-- Processes uploaded photos to automatically extract strain names, types, THC content, and descriptions
-
-### File Processing
-- **multer**: Multipart form handling for image uploads
 - **ws**: WebSocket library required for Neon serverless connection

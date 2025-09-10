@@ -1,22 +1,7 @@
-import type { Express, Request } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
-import multer, { type FileFilterCallback } from "multer";
 import { storage } from "./storage";
-import { analyzeStrainPackaging, convertFileToBase64 } from "./openai";
 import { insertStrainSchema, insertUserStrainExperienceSchema } from "@shared/schema";
-
-// Configure multer for file uploads
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'));
-    }
-  }
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Strain routes
@@ -48,25 +33,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Photo analysis route
-  app.post("/api/strains/analyze-photo", upload.single('photo'), async (req: Request & { file?: Express.Multer.File }, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No photo provided' });
-      }
-
-      const base64Image = convertFileToBase64(req.file.buffer);
-      const extractedData = await analyzeStrainPackaging(base64Image);
-      
-      res.json(extractedData);
-    } catch (error: any) {
-      console.error('Error analyzing photo:', error);
-      
-      // Pass through more specific error messages
-      const errorMessage = error.message || 'Failed to analyze photo';
-      res.status(500).json({ error: errorMessage });
-    }
-  });
 
   // User strain experience routes
   app.post("/api/user-strain-experiences", async (req, res) => {
