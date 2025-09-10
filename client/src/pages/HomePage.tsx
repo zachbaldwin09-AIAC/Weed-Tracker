@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StrainSearch } from "@/components/StrainSearch";
 import { StrainCard } from "@/components/StrainCard";
 import { AddStrainModal } from "@/components/AddStrainModal";
-import type { Strain } from "@shared/schema";
+import type { Strain, UserStrainExperience } from "@shared/schema";
 
 
 
@@ -12,9 +12,17 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ type?: string; saved?: boolean }>({});
   
+  // TODO: Get current user ID - for now using a mock user ID
+  const currentUserId = "user-1";
+  
   // Fetch strains from API
   const { data: strains = [], isLoading, error } = useQuery<Strain[]>({
     queryKey: ['/api/strains'],
+  });
+  
+  // Fetch user experiences for this user
+  const { data: userExperiences = [] } = useQuery<UserStrainExperience[]>({
+    queryKey: ['/api/user-strain-experiences', currentUserId],
   });
 
   const filteredStrains = useMemo(() => {
@@ -29,14 +37,17 @@ export default function HomePage() {
         return false;
       }
 
-      // Saved filter - TODO: Implement user experiences
+      // Saved filter - check if user has saved this strain
       if (filters.saved) {
-        return false; // For now, no saved strains
+        const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
+        if (!userExperience || !userExperience.saved) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [strains, searchQuery, filters]);
+  }, [strains, searchQuery, filters, userExperiences]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -94,19 +105,26 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground" data-testid="text-results-count">
                   {filteredStrains.length} strain{filteredStrains.length !== 1 ? 's' : ''} found
                 </p>
-                {filteredStrains.map(strain => (
-                  <StrainCard
-                    key={strain.id}
-                    strain={{
-                      id: strain.id,
-                      name: strain.name,
-                      type: strain.type as 'Indica' | 'Sativa' | 'Hybrid',
-                      thcContent: strain.thcContent || 0,
-                      description: strain.description || undefined,
-                    }}
-                    userExperience={undefined} // TODO: Implement user experiences
-                  />
-                ))}
+                {filteredStrains.map(strain => {
+                  const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
+                  return (
+                    <StrainCard
+                      key={strain.id}
+                      strain={{
+                        id: strain.id,
+                        name: strain.name,
+                        type: strain.type as 'Indica' | 'Sativa' | 'Hybrid',
+                        thcContent: strain.thcContent || 0,
+                        description: strain.description || undefined,
+                      }}
+                      userExperience={userExperience ? {
+                        liked: userExperience.liked,
+                        saved: userExperience.saved,
+                        notes: userExperience.notes
+                      } : undefined}
+                    />
+                  );
+                })}
               </>
             ) : (
               <div className="text-center py-12">
