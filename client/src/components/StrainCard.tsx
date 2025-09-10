@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { ThumbsUp, ThumbsDown, MessageSquare, Bookmark } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { InsertUserStrainExperience } from "@shared/schema";
 
 interface StrainCardProps {
   strain: {
@@ -25,25 +29,68 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
   const [notes, setNotes] = useState(userExperience?.notes || "");
   const [saved, setSaved] = useState(userExperience?.saved || false);
   const [showNotes, setShowNotes] = useState(false);
+  const { toast } = useToast();
+  
+  // TODO: Get current user ID - for now using a mock user ID
+  const currentUserId = "user-1";
+
+  // Mutation for saving user strain experiences
+  const saveExperienceMutation = useMutation({
+    mutationFn: async (experienceData: Partial<InsertUserStrainExperience>) => {
+      const fullData: InsertUserStrainExperience = {
+        userId: currentUserId,
+        strainId: strain.id,
+        liked: null,
+        notes: null,
+        ...experienceData,
+      };
+      return await apiRequest('POST', '/api/user-strain-experiences', fullData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-strain-experiences'] });
+    },
+    onError: (error: any) => {
+      console.error('Error saving experience:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your experience. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleLike = () => {
+    const newLiked = liked === true ? null : true;
     console.log(`Liked strain: ${strain.name}`);
-    setLiked(liked === true ? undefined : true);
+    setLiked(newLiked);
+    saveExperienceMutation.mutate({ liked: newLiked, notes: notes || null });
   };
 
   const handleDislike = () => {
+    const newLiked = liked === false ? null : false;
     console.log(`Disliked strain: ${strain.name}`);
-    setLiked(liked === false ? undefined : false);
+    setLiked(newLiked);
+    saveExperienceMutation.mutate({ liked: newLiked, notes: notes || null });
   };
 
   const handleSave = () => {
+    const newSaved = !saved;
     console.log(`${saved ? 'Unsaved' : 'Saved'} strain: ${strain.name}`);
-    setSaved(!saved);
+    setSaved(newSaved);
+    // TODO: Implement saved strains functionality
   };
 
   const handleNotesChange = (value: string) => {
     setNotes(value);
     console.log(`Notes updated for ${strain.name}: ${value}`);
+  };
+
+  const handleSaveNotes = () => {
+    saveExperienceMutation.mutate({ liked, notes: notes || null });
+    toast({
+      title: "Notes Saved",
+      description: "Your notes have been saved successfully.",
+    });
   };
 
   const getTypeColor = (type: string) => {
@@ -129,6 +176,15 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
               className="min-h-[80px] text-sm"
               data-testid={`textarea-notes-${strain.id}`}
             />
+            <Button
+              size="sm"
+              onClick={handleSaveNotes}
+              disabled={saveExperienceMutation.isPending}
+              className="w-full"
+              data-testid={`button-save-notes-${strain.id}`}
+            >
+              {saveExperienceMutation.isPending ? "Saving..." : "Save Notes"}
+            </Button>
           </div>
         )}
       </CardContent>
