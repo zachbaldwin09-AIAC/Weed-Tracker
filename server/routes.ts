@@ -59,9 +59,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const extractedData = await analyzeStrainPackaging(base64Image);
       
       res.json(extractedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error analyzing photo:', error);
-      res.status(500).json({ error: 'Failed to analyze photo' });
+      
+      // Pass through more specific error messages
+      const errorMessage = error.message || 'Failed to analyze photo';
+      res.status(500).json({ error: errorMessage });
     }
   });
 

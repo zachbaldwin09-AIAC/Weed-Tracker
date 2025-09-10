@@ -73,9 +73,23 @@ export async function analyzeStrainPackaging(base64Image: string): Promise<Extra
 
     return extractedData;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error analyzing strain packaging:', error);
-    throw new Error('Failed to analyze strain packaging image');
+    
+    // Handle specific OpenAI errors
+    if (error?.status === 429) {
+      throw new Error('OpenAI API quota exceeded. Please try again later or check your API usage.');
+    }
+    
+    if (error?.status === 401) {
+      throw new Error('OpenAI API key invalid. Please check your API configuration.');
+    }
+    
+    if (error?.message?.includes('insufficient_quota')) {
+      throw new Error('OpenAI API quota insufficient. Please check your OpenAI account billing.');
+    }
+    
+    throw new Error('Failed to analyze strain packaging image. Please try manual entry instead.');
   }
 }
 
