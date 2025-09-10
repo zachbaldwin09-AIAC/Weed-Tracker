@@ -118,9 +118,9 @@ export default function HomePage() {
                         description: strain.description || undefined,
                       }}
                       userExperience={userExperience ? {
-                        liked: userExperience.liked,
-                        saved: userExperience.saved,
-                        notes: userExperience.notes
+                        liked: userExperience.liked ?? undefined,
+                        saved: userExperience.saved || undefined,
+                        notes: userExperience.notes ?? undefined
                       } : undefined}
                     />
                   );

@@ -65,7 +65,7 @@ export function AddStrainModal({ onStrainAdded }: AddStrainModalProps) {
       const formData = new FormData();
       formData.append('photo', file);
       const response = await apiRequest('POST', '/api/strains/analyze-photo', formData);
-      return response as ExtractedStrainData;
+      return response as unknown as ExtractedStrainData;
     },
     onSuccess: (data: ExtractedStrainData) => {
       console.log('Extracted data:', data);
