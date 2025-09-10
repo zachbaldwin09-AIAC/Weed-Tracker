@@ -117,11 +117,11 @@ export function AddStrainModal({ onStrainAdded }: AddStrainModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
-          className="fixed bottom-6 right-4 h-14 w-14 rounded-full shadow-lg z-50"
+          className="h-10 w-10 rounded-full"
           size="icon"
           data-testid="button-add-strain-fab"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
         </Button>
       </DialogTrigger>
       

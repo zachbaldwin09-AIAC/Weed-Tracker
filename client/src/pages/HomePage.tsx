@@ -84,63 +84,69 @@ export default function HomePage() {
             onFilterChange={handleFilterChange}
           />
 
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground" data-testid="text-loading">
-                  Loading strains...
-                </p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-destructive text-lg" data-testid="text-error">
-                  Error loading strains
-                </p>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Please try again later
-                </p>
-              </div>
-            ) : filteredStrains.length > 0 ? (
-              <>
-                <p className="text-sm text-muted-foreground" data-testid="text-results-count">
-                  {filteredStrains.length} strain{filteredStrains.length !== 1 ? 's' : ''} found
-                </p>
-                {filteredStrains.map(strain => {
-                  const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
-                  return (
-                    <StrainCard
-                      key={strain.id}
-                      strain={{
-                        id: strain.id,
-                        name: strain.name,
-                        type: strain.type as 'Indica' | 'Sativa' | 'Hybrid',
-                        thcContent: strain.thcContent || 0,
-                        description: strain.description || undefined,
-                      }}
-                      userExperience={userExperience ? {
-                        liked: userExperience.liked ?? undefined,
-                        saved: userExperience.saved || undefined,
-                        notes: userExperience.notes ?? undefined
-                      } : undefined}
-                    />
-                  );
-                })}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg" data-testid="text-no-results">
-                  No strains found
-                </p>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Try adjusting your search or filters
-                </p>
-              </div>
-            )}
+          <div className="relative">
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground" data-testid="text-loading">
+                    Loading strains...
+                  </p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-destructive text-lg" data-testid="text-error">
+                    Error loading strains
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Please try again later
+                  </p>
+                </div>
+              ) : filteredStrains.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground" data-testid="text-results-count">
+                      {filteredStrains.length} strain{filteredStrains.length !== 1 ? 's' : ''} found
+                    </p>
+                    <AddStrainModal onStrainAdded={handleStrainAdded} />
+                  </div>
+                  {filteredStrains.map(strain => {
+                    const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
+                    return (
+                      <StrainCard
+                        key={strain.id}
+                        strain={{
+                          id: strain.id,
+                          name: strain.name,
+                          type: strain.type as 'Indica' | 'Sativa' | 'Hybrid',
+                          thcContent: strain.thcContent || 0,
+                          description: strain.description || undefined,
+                        }}
+                        userExperience={userExperience ? {
+                          liked: userExperience.liked ?? undefined,
+                          saved: userExperience.saved || undefined,
+                          notes: userExperience.notes ?? undefined
+                        } : undefined}
+                      />
+                    );
+                  })}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="flex items-center justify-end mb-4">
+                    <AddStrainModal onStrainAdded={handleStrainAdded} />
+                  </div>
+                  <p className="text-muted-foreground text-lg" data-testid="text-no-results">
+                    No strains found
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Try adjusting your search or filters
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
-      
-      <AddStrainModal onStrainAdded={handleStrainAdded} />
     </div>
   );
 }
