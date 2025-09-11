@@ -33,6 +33,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/strains/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Prevent deletion of sample strains (IDs 1-6 are sample strains)
+      if (['1', '2', '3', '4', '5', '6'].includes(id)) {
+        return res.status(403).json({ error: 'Cannot delete sample strains' });
+      }
+      
+      const deleted = await storage.deleteStrain(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Strain not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting strain:', error);
+      res.status(500).json({ error: 'Failed to delete strain' });
+    }
+  });
+
 
   // User strain experience routes
   app.post("/api/user-strain-experiences", async (req, res) => {
@@ -63,6 +84,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching user experiences:', error);
       res.status(500).json({ error: 'Failed to fetch experiences' });
+    }
+  });
+
+  app.delete("/api/user-strain-experiences/:userId/:strainId", async (req, res) => {
+    try {
+      const { userId, strainId } = req.params;
+      
+      const deleted = await storage.deleteUserStrainExperience(userId, strainId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Experience not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting user experience:', error);
+      res.status(500).json({ error: 'Failed to delete experience' });
     }
   });
 

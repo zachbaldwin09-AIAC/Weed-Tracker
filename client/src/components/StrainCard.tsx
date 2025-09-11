@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ThumbsUp, ThumbsDown, MessageSquare, Bookmark } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Bookmark, Trash2, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { InsertUserStrainExperience, UserStrainExperience } from "@shared/schema";
@@ -54,6 +55,55 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
       toast({
         title: "Error",
         description: "Failed to save your experience. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for deleting strain (only for user-created strains)
+  const deleteStrainMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('DELETE', `/api/strains/${strain.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/strains'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-strain-experiences'] });
+      toast({
+        title: "Strain Deleted",
+        description: "The strain has been removed successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error deleting strain:', error);
+      toast({
+        title: "Error",
+        description: error.error || "Failed to delete strain. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for clearing user experience (notes, ratings, saved status)
+  const clearExperienceMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('DELETE', `/api/user-strain-experiences/${currentUserId}/${strain.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-strain-experiences'] });
+      setLiked(null);
+      setNotes("");
+      setSaved(false);
+      setShowNotes(false);
+      toast({
+        title: "Experience Cleared",
+        description: "Your notes, rating, and saved status have been removed.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error clearing experience:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear your experience. Please try again.",
         variant: "destructive",
       });
     },
@@ -123,15 +173,87 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
               </span>
             </div>
           </div>
-          <Button 
-            size="icon" 
-            variant="ghost"
-            onClick={handleSave}
-            className={saved ? "text-primary" : ""}
-            data-testid={`button-save-${strain.id}`}
-          >
-            <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
-          </Button>
+          <div className="flex items-center gap-1">
+            {/* Clear experience button - only show if user has any interaction */}
+            {(liked !== null || notes || saved) && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="ghost"
+                    data-testid={`button-clear-experience-${strain.id}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Your Experience</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove your rating, notes, and saved status for "{strain.name}". 
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid={`button-cancel-clear-${strain.id}`}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => clearExperienceMutation.mutate()}
+                      disabled={clearExperienceMutation.isPending}
+                      data-testid={`button-confirm-clear-${strain.id}`}
+                    >
+                      {clearExperienceMutation.isPending ? "Clearing..." : "Clear Experience"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            
+            {/* Delete strain button - only for user-created strains (not sample strains 1-6) */}
+            {!['1', '2', '3', '4', '5', '6'].includes(strain.id) && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10"
+                    data-testid={`button-delete-strain-${strain.id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Strain</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{strain.name}"? This will permanently remove 
+                      the strain and all user experiences associated with it. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid={`button-cancel-delete-${strain.id}`}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteStrainMutation.mutate()}
+                      disabled={deleteStrainMutation.isPending}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      data-testid={`button-confirm-delete-${strain.id}`}
+                    >
+                      {deleteStrainMutation.isPending ? "Deleting..." : "Delete Strain"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            
+            <Button 
+              size="icon" 
+              variant="ghost"
+              onClick={handleSave}
+              className={saved ? "text-primary" : ""}
+              data-testid={`button-save-${strain.id}`}
+            >
+              <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
+            </Button>
+          </div>
         </div>
         {strain.description && (
           <p className="text-sm text-muted-foreground mt-2" data-testid={`text-strain-description-${strain.id}`}>
