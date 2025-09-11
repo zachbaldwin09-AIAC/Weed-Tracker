@@ -14,12 +14,15 @@ export interface IStorage {
   getStrainByName(name: string): Promise<Strain | undefined>;
   createStrain(strain: InsertStrain): Promise<Strain>;
   getAllStrains(): Promise<Strain[]>;
+  deleteStrain(id: string): Promise<boolean>;
   
   // User strain experience methods
   getUserStrainExperience(userId: string, strainId: string): Promise<UserStrainExperience | undefined>;
   createUserStrainExperience(experience: InsertUserStrainExperience): Promise<UserStrainExperience>;
   updateUserStrainExperience(id: string, updates: Partial<InsertUserStrainExperience>): Promise<UserStrainExperience>;
   getUserStrainExperiences(userId: string): Promise<UserStrainExperience[]>;
+  deleteUserStrainExperience(userId: string, strainId: string): Promise<boolean>;
+  deleteAllUserStrainExperiencesForStrain(strainId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -153,6 +156,36 @@ export class MemStorage implements IStorage {
     return Array.from(this.userStrainExperiences.values()).filter(
       (experience) => experience.userId === userId,
     );
+  }
+  
+  // Delete methods
+  async deleteStrain(id: string): Promise<boolean> {
+    const hasStrain = this.strains.has(id);
+    if (hasStrain) {
+      this.strains.delete(id);
+      // Also delete all user experiences for this strain
+      await this.deleteAllUserStrainExperiencesForStrain(id);
+    }
+    return hasStrain;
+  }
+  
+  async deleteUserStrainExperience(userId: string, strainId: string): Promise<boolean> {
+    const experience = await this.getUserStrainExperience(userId, strainId);
+    if (experience) {
+      this.userStrainExperiences.delete(experience.id);
+      return true;
+    }
+    return false;
+  }
+  
+  async deleteAllUserStrainExperiencesForStrain(strainId: string): Promise<void> {
+    const experiencesToDelete = Array.from(this.userStrainExperiences.values()).filter(
+      (experience) => experience.strainId === strainId,
+    );
+    
+    experiencesToDelete.forEach(experience => {
+      this.userStrainExperiences.delete(experience.id);
+    });
   }
 }
 
