@@ -208,41 +208,39 @@ export function StrainCard({ strain, userExperience }: StrainCardProps) {
               </AlertDialog>
             )}
             
-            {/* Delete strain button - only for user-created strains (not sample strains 1-6) */}
-            {!['1', '2', '3', '4', '5', '6'].includes(strain.id) && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    variant="ghost"
-                    className="text-destructive hover:bg-destructive/10"
-                    data-testid={`button-delete-strain-${strain.id}`}
+            {/* Delete strain button - show for all strains since no sample strains exist */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive/10"
+                  data-testid={`button-delete-strain-${strain.id}`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Strain</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{strain.name}"? This will permanently remove 
+                    the strain and all user experiences associated with it. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel data-testid={`button-cancel-delete-${strain.id}`}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={() => deleteStrainMutation.mutate()}
+                    disabled={deleteStrainMutation.isPending}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    data-testid={`button-confirm-delete-${strain.id}`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Strain</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete "{strain.name}"? This will permanently remove 
-                      the strain and all user experiences associated with it. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel data-testid={`button-cancel-delete-${strain.id}`}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={() => deleteStrainMutation.mutate()}
-                      disabled={deleteStrainMutation.isPending}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      data-testid={`button-confirm-delete-${strain.id}`}
-                    >
-                      {deleteStrainMutation.isPending ? "Deleting..." : "Delete Strain"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+                    {deleteStrainMutation.isPending ? "Deleting..." : "Delete Strain"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             
             <Button 
               size="icon" 

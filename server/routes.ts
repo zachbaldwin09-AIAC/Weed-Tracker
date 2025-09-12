@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertStrainSchema, insertUserStrainExperienceSchema } from "@shared/schema";
+import { insertStrainSchema, insertUserStrainExperienceSchema, updateUserProfileSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Strain routes
@@ -36,11 +36,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/strains/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      
-      // Prevent deletion of sample strains (IDs 1-6 are sample strains)
-      if (['1', '2', '3', '4', '5', '6'].includes(id)) {
-        return res.status(403).json({ error: 'Cannot delete sample strains' });
-      }
       
       const deleted = await storage.deleteStrain(id);
       if (!deleted) {
@@ -100,6 +95,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting user experience:', error);
       res.status(500).json({ error: 'Failed to delete experience' });
+    }
+  });
+
+  // User profile routes
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Don't return password in response
+      const { password, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  });
+
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = updateUserProfileSchema.parse(req.body);
+      
+      const updated = await storage.updateUserProfile(id, validatedData);
+      
+      // Don't return password in response
+      const { password, ...userProfile } = updated;
+      res.json(userProfile);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(400).json({ error: 'Failed to update user profile' });
     }
   });
 

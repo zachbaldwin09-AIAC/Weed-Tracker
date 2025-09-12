@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  displayName: text("display_name"),
 });
 
 export const strains = pgTable("strains", {
@@ -30,6 +31,11 @@ export const userStrainExperiences = pgTable("user_strain_experiences", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  displayName: true,
+});
+
+export const updateUserProfileSchema = createInsertSchema(users).pick({
+  displayName: true,
 });
 
 export const insertStrainSchema = createInsertSchema(strains).pick({

@@ -1,7 +1,11 @@
 import { Leaf, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 export function Header() {
+  // TODO: Get current user ID - for now using a mock user ID
+  const currentUserId = "user-1";
+
   return (
     <header className="flex items-center justify-between p-4 border-b bg-background">
       <div className="flex items-center gap-2">
@@ -10,14 +14,15 @@ export function Header() {
           Weed Tracker
         </h1>
       </div>
-      <Button 
-        size="icon" 
-        variant="ghost"
-        onClick={() => console.log('Profile clicked')}
-        data-testid="button-profile"
-      >
-        <User className="w-5 h-5" />
-      </Button>
+      <UserProfileModal userId={currentUserId}>
+        <Button 
+          size="icon" 
+          variant="ghost"
+          data-testid="button-profile"
+        >
+          <User className="w-5 h-5" />
+        </Button>
+      </UserProfileModal>
     </header>
   );
 }

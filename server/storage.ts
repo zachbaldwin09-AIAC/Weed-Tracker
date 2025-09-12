@@ -8,6 +8,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: string, updates: { displayName?: string | null }): Promise<User>;
   
   // Strain methods
   getStrain(id: string): Promise<Strain | undefined>;
@@ -35,23 +36,18 @@ export class MemStorage implements IStorage {
     this.strains = new Map();
     this.userStrainExperiences = new Map();
     
-    // Initialize with some sample strains
-    this.initializeSampleStrains();
+    // Initialize default user for MVP (using hardcoded user-1 ID)
+    this.initializeDefaultUser();
   }
   
-  private initializeSampleStrains() {
-    const sampleStrains: Strain[] = [
-      { id: "1", name: "Blue Dream", type: "Hybrid", thcContent: 18, description: "A balanced hybrid with sweet berry aroma and calming euphoric effects." },
-      { id: "2", name: "OG Kush", type: "Indica", thcContent: 22, description: "Classic strain with earthy, pine flavors and strong relaxing effects." },
-      { id: "3", name: "Green Crack", type: "Sativa", thcContent: 16, description: "Energizing sativa with citrus flavors perfect for daytime use." },
-      { id: "4", name: "Wedding Cake", type: "Hybrid", thcContent: 25, description: "Potent hybrid with vanilla and tangy flavors, great for relaxation." },
-      { id: "5", name: "Jack Herer", type: "Sativa", thcContent: 19, description: "Uplifting sativa named after the cannabis activist, with spicy pine taste." },
-      { id: "6", name: "Granddaddy Purple", type: "Indica", thcContent: 17, description: "Classic indica with grape and berry flavors for deep relaxation." }
-    ];
-    
-    sampleStrains.forEach(strain => {
-      this.strains.set(strain.id, strain);
-    });
+  private initializeDefaultUser() {
+    const defaultUser: User = {
+      id: "user-1",
+      username: "default_user",
+      password: "placeholder", // Not used in MVP
+      displayName: null
+    };
+    this.users.set("user-1", defaultUser);
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -66,9 +62,27 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      displayName: insertUser.displayName ?? null
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUserProfile(id: string, updates: { displayName?: string | null }): Promise<User> {
+    const existing = this.users.get(id);
+    if (!existing) {
+      throw new Error('User not found');
+    }
+    
+    const updated = { 
+      ...existing, 
+      displayName: updates.displayName !== undefined ? updates.displayName : existing.displayName
+    };
+    this.users.set(id, updated);
+    return updated;
   }
   
   // Strain methods
