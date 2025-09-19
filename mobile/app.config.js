@@ -1,7 +1,8 @@
 export default {
   expo: {
     name: "Weed Tracker",
-    slug: "weed-tracker-mobile",
+    slug: "weed-tracker",
+    owner: "zachbaldwin09-aiac",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -16,15 +17,18 @@ export default {
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.zachbaldwin.weedtracker",
-      buildNumber: "1"
+      bundleIdentifier: "com.zachbaldwin09-aiac.weedtracker",
+      buildNumber: "1",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.zachbaldwin.weedtracker",
+      package: "com.zachbaldwin09-aiac.weedtracker",
       versionCode: 1
     },
     web: {
@@ -32,7 +36,7 @@ export default {
     },
     extra: {
       eas: {
-        projectId: process.env.EAS_PROJECT_ID || "your-project-id-here"
+        projectId: "e875f9a0-497d-4b2c-b08e-c55002c660b8"
       }
     },
     plugins: [
