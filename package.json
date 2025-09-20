@@ -108,11 +108,5 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
   }
-}
-{
-  "dependencies": {
-    "expo": "^51.0.0",
-    "react": "18.2.0",
-    "react-native": "0.74.0"
-  }
-}
+
+
