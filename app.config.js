@@ -15,6 +15,9 @@ export default ({ config }) => {
       eas: {
         projectId: "e875f9a0-497d-4b2c-b08e-c55002c660b8",
       },
+      apiBaseUrl: process.env.NODE_ENV === 'development' 
+        ? 'http://192.168.1.100:5000' // Replace with your local IP or tunnel URL
+        : 'https://your-production-api.com',
     },
   };
 };

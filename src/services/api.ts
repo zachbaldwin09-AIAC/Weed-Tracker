@@ -1,7 +1,10 @@
-import { Strain, UserStrainExperience, InsertStrain, InsertUserStrainExperience } from '../types';
+import { Strain, UserStrainExperience, InsertStrain, InsertUserStrainExperience, User } from '../types';
 
 // Configuration for API calls
-const API_BASE_URL = __DEV__ ? 'http://localhost:5000' : 'https://your-production-url.com';
+// Note: For real device testing, replace with your computer's IP address (e.g., 'http://192.168.1.100:5000')
+const API_BASE_URL = __DEV__ 
+  ? 'http://localhost:5000' // Will work in Expo web, needs IP for device/simulator
+  : 'https://your-production-url.com';
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
