@@ -1,10 +1,14 @@
 import { Strain, UserStrainExperience, InsertStrain, InsertUserStrainExperience, User } from '../types';
+import { mockStrains, mockUserExperiences, mockUser } from './mockData';
 
 // Configuration for API calls
 // Note: For real device testing, replace with your computer's IP address (e.g., 'http://192.168.1.100:5000')
 const API_BASE_URL = __DEV__ 
   ? 'http://localhost:5000' // Will work in Expo web, needs IP for device/simulator
   : 'https://your-production-url.com';
+
+// Mock data flag - set to true to use mock data instead of real API
+const USE_MOCK_DATA = true;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -34,10 +38,27 @@ class ApiService {
 
   // Strain API methods
   async getAllStrains(): Promise<Strain[]> {
+    if (USE_MOCK_DATA) {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return mockStrains;
+    }
     return this.request<Strain[]>('/api/strains');
   }
 
   async createStrain(strain: InsertStrain): Promise<Strain> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const newStrain: Strain = {
+        id: Date.now().toString(),
+        name: strain.name,
+        type: strain.type as 'Indica' | 'Sativa' | 'Hybrid',
+        thcContent: strain.thcContent,
+        description: strain.description
+      };
+      mockStrains.push(newStrain);
+      return newStrain;
+    }
     return this.request<Strain>('/api/strains', {
       method: 'POST',
       body: JSON.stringify(strain),
@@ -45,6 +66,14 @@ class ApiService {
   }
 
   async deleteStrain(strainId: string): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const index = mockStrains.findIndex(strain => strain.id === strainId);
+      if (index > -1) {
+        mockStrains.splice(index, 1);
+      }
+      return { success: true };
+    }
     return this.request<{ success: boolean }>(`/api/strains/${strainId}`, {
       method: 'DELETE',
     });
@@ -52,10 +81,28 @@ class ApiService {
 
   // User Strain Experience API methods
   async getUserStrainExperiences(userId: string): Promise<UserStrainExperience[]> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return mockUserExperiences.filter(exp => exp.userId === userId);
+    }
     return this.request<UserStrainExperience[]>(`/api/user-strain-experiences/${userId}`);
   }
 
   async saveUserStrainExperience(experience: InsertUserStrainExperience): Promise<UserStrainExperience> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const newExperience: UserStrainExperience = {
+        id: Date.now().toString(),
+        userId: experience.userId,
+        strainId: experience.strainId,
+        liked: experience.liked,
+        saved: experience.saved,
+        notes: experience.notes,
+        createdAt: new Date().toISOString()
+      };
+      mockUserExperiences.push(newExperience);
+      return newExperience;
+    }
     return this.request<UserStrainExperience>('/api/user-strain-experiences', {
       method: 'POST',
       body: JSON.stringify(experience),
@@ -63,6 +110,14 @@ class ApiService {
   }
 
   async deleteUserStrainExperience(userId: string, strainId: string): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const index = mockUserExperiences.findIndex(exp => exp.userId === userId && exp.strainId === strainId);
+      if (index > -1) {
+        mockUserExperiences.splice(index, 1);
+      }
+      return { success: true };
+    }
     return this.request<{ success: boolean }>(`/api/user-strain-experiences/${userId}/${strainId}`, {
       method: 'DELETE',
     });
@@ -70,10 +125,21 @@ class ApiService {
 
   // User API methods
   async getUser(userId: string): Promise<Omit<User, 'password'>> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return mockUser;
+    }
     return this.request<Omit<User, 'password'>>(`/api/users/${userId}`);
   }
 
   async updateUserProfile(userId: string, profile: { displayName?: string }): Promise<Omit<User, 'password'>> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      if (profile.displayName) {
+        mockUser.displayName = profile.displayName;
+      }
+      return mockUser;
+    }
     return this.request<Omit<User, 'password'>>(`/api/users/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify(profile),
