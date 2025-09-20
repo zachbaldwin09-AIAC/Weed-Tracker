@@ -1,36 +1,29 @@
 {
   "expo": {
     "name": "Weed Tracker",
-    "slug": "weed-tracker-mobile",
+    "slug": "weed-tracker",
+    "owner": "zachbaldwin09-aiac",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zachbaldwin.weedtracker"
+      "bundleIdentifier": "com.zachbaldwin09-aiac.weedtracker",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.zachbaldwin.weedtracker"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.zachbaldwin09-aiac.weedtracker",
+      "versionCode": 1
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "e875f9a0-497d-4b2c-b08e-c55002c660b8"
       }
     }
   }
