@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "node run-web-dev.js"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -7,8 +7,8 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ["node", "run-web-build.js"]
+run = ["node", "run-web-start.js"]
 
 [[ports]]
 localPort = 5000
@@ -47,6 +47,10 @@ localPort = 42719
 externalPort = 6000
 
 [[ports]]
+localPort = 42905
+externalPort = 8008
+
+[[ports]]
 localPort = 44351
 externalPort = 5000
 
@@ -75,7 +79,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "node run-web-dev.js"
 waitForPort = 5000
 
 [agent]
