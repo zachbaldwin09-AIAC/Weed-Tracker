@@ -2,13 +2,11 @@ import { Strain, UserStrainExperience, InsertStrain, InsertUserStrainExperience,
 import { mockStrains, mockUserExperiences, mockUser } from './mockData';
 
 // Configuration for API calls
-// Note: For real device testing, replace with your computer's IP address (e.g., 'http://192.168.1.100:5000')
-const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:5000' // Will work in Expo web, needs IP for device/simulator
-  : 'https://your-production-url.com';
+// Using Replit's public domain for both dev and production since mobile needs a reachable URL
+const API_BASE_URL = 'https://e11f9830-1cb8-433c-9ce8-fdd0ab8d65cd-00-148f6itm8ejpe.riker.replit.dev';
 
 // Mock data flag - set to true to use mock data instead of real API
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
