@@ -4,12 +4,24 @@ export default ({ config }) => {
     ...config,
     name: "Weed Tracker",
     slug: "weed-tracker",
-    owner: "Zach Baldwin",
+    owner: "zachbaldwin09-aiac",
+    version: "1.0.0",
+    orientation: "portrait",
+    userInterfaceStyle: "light",
+    assetBundlePatterns: [
+      "**/*"
+    ],
     ios: {
+      supportsTablet: true,
       bundleIdentifier: "com.zachbaldwin09-aiac.weedtracker",
+      buildNumber: "1",
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
+    },
+    android: {
+      package: "com.zachbaldwin09-aiac.weedtracker",
+      versionCode: 1
     },
     extra: {
       eas: {
