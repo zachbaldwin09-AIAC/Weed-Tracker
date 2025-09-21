@@ -11,9 +11,11 @@ import BrowseScreen from './src/screens/BrowseScreen';
 import StrainDetailScreen from './src/screens/StrainDetailScreen';
 import AddStrainScreen from './src/screens/AddStrainScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import { theme } from './src/theme';
 
 export type RootStackParamList = {
+  ProfileSetup: undefined;
   Home: undefined;
   Browse: undefined;
   StrainDetail: { strainId: string };
@@ -41,7 +43,7 @@ export default function App() {
           <NavigationContainer>
             <StatusBar style="auto" />
             <Stack.Navigator
-              initialRouteName="Home"
+              initialRouteName="ProfileSetup"
               screenOptions={{
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
@@ -52,6 +54,14 @@ export default function App() {
                 },
               }}
             >
+              <Stack.Screen
+                name="ProfileSetup"
+                component={ProfileSetupScreen}
+                options={{ 
+                  title: 'Setup Profile',
+                  headerShown: false 
+                }}
+              />
               <Stack.Screen
                 name="Home"
                 component={HomeScreen}

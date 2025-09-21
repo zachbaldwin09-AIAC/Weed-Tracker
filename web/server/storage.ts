@@ -8,7 +8,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserProfile(id: string, updates: { displayName?: string | null }): Promise<User>;
+  updateUserProfile(id: string, updates: { displayName?: string | null; homeState?: string | null }): Promise<User>;
   
   // Strain methods
   getStrain(id: string): Promise<Strain | undefined>;
@@ -45,7 +45,8 @@ export class MemStorage implements IStorage {
       id: "user-1",
       username: "default_user",
       password: "placeholder", // Not used in MVP
-      displayName: null
+      displayName: null,
+      homeState: null
     };
     this.users.set("user-1", defaultUser);
   }
@@ -65,13 +66,14 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
-      displayName: insertUser.displayName ?? null
+      displayName: insertUser.displayName ?? null,
+      homeState: insertUser.homeState ?? null
     };
     this.users.set(id, user);
     return user;
   }
   
-  async updateUserProfile(id: string, updates: { displayName?: string | null }): Promise<User> {
+  async updateUserProfile(id: string, updates: { displayName?: string | null; homeState?: string | null }): Promise<User> {
     const existing = this.users.get(id);
     if (!existing) {
       throw new Error('User not found');
@@ -79,7 +81,8 @@ export class MemStorage implements IStorage {
     
     const updated = { 
       ...existing, 
-      displayName: updates.displayName !== undefined ? updates.displayName : existing.displayName
+      displayName: updates.displayName !== undefined ? updates.displayName : existing.displayName,
+      homeState: updates.homeState !== undefined ? updates.homeState : existing.homeState
     };
     this.users.set(id, updated);
     return updated;
@@ -203,4 +206,22 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./database-storage";
+
+// Use DatabaseStorage if DATABASE_URL is available, otherwise fallback to MemStorage
+let storage;
+if (process.env.DATABASE_URL) {
+  try {
+    storage = new DatabaseStorage();
+    // Initialize default user for database
+    storage.initializeDefaultUser().catch(console.error);
+  } catch (error) {
+    console.warn('Failed to connect to database, falling back to MemStorage:', error);
+    storage = new MemStorage();
+  }
+} else {
+  console.log('No DATABASE_URL found, using MemStorage for development');
+  storage = new MemStorage();
+}
+
+export { storage };

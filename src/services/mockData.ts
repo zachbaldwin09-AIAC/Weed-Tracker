@@ -12,5 +12,6 @@ export const mockUserExperiences: UserStrainExperience[] = [
 export const mockUser: User = {
   id: 'user-1',
   username: 'demo_user',
-  displayName: 'Demo User'
+  displayName: 'Demo User',
+  homeState: null
 };

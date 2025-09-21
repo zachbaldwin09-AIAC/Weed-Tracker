@@ -3,6 +3,7 @@ export interface User {
   id: string;
   username: string;
   displayName?: string;
+  homeState?: string;
 }
 
 export interface Strain {

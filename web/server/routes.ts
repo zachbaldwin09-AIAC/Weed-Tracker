@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertStrainSchema, insertUserStrainExperienceSchema, updateUserProfileSchema } from "@shared/schema";
+import { insertStrainSchema, insertUserStrainExperienceSchema, updateUserProfileSchema, insertUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Strain routes
@@ -99,6 +99,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile routes
+  app.post("/api/users", async (req, res) => {
+    try {
+      // Create a schema for profile creation (without password requirement)
+      const createProfileSchema = insertUserSchema.omit({ password: true });
+      const validatedData = createProfileSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(409).json({ error: 'Username already exists' });
+      }
+      
+      const user = await storage.createUser({
+        ...validatedData,
+        password: 'placeholder' // Not used in MVP
+      });
+      
+      // Don't return password in response
+      const { password, ...userProfile } = user;
+      res.status(201).json(userProfile);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(400).json({ error: 'Invalid user data' });
+    }
+  });
+
   app.get("/api/users/:id", async (req, res) => {
     try {
       const { id } = req.params;

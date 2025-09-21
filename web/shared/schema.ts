@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   displayName: text("display_name"),
+  homeState: text("home_state"), // Optional home state field
 });
 
 export const strains = pgTable("strains", {
@@ -28,24 +29,45 @@ export const userStrainExperiences = pgTable("user_strain_experiences", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(1),
+  password: z.string().min(1),
+  displayName: z.string().optional(),
+  homeState: z.string().optional(),
+}).pick({
   username: true,
   password: true,
   displayName: true,
+  homeState: true,
 });
 
-export const updateUserProfileSchema = createInsertSchema(users).pick({
+export const updateUserProfileSchema = createInsertSchema(users, {
+  displayName: z.string().optional(),
+  homeState: z.string().optional(),
+}).pick({
   displayName: true,
+  homeState: true,
 });
 
-export const insertStrainSchema = createInsertSchema(strains).pick({
+export const insertStrainSchema = createInsertSchema(strains, {
+  name: z.string().min(1),
+  type: z.string().min(1),
+  thcContent: z.number().optional(),
+  description: z.string().optional(),
+}).pick({
   name: true,
   type: true,
   thcContent: true,
   description: true,
 });
 
-export const insertUserStrainExperienceSchema = createInsertSchema(userStrainExperiences).pick({
+export const insertUserStrainExperienceSchema = createInsertSchema(userStrainExperiences, {
+  userId: z.string().min(1),
+  strainId: z.string().min(1),
+  liked: z.boolean().optional(),
+  saved: z.boolean().optional(),
+  notes: z.string().optional(),
+}).pick({
   userId: true,
   strainId: true,
   liked: true,

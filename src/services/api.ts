@@ -6,8 +6,8 @@ import { mockStrains, mockUserExperiences, mockUser } from './mockData';
 const API_BASE_URL = 'https://e11f9830-1cb8-433c-9ce8-fdd0ab8d65cd-00-148f6itm8ejpe.riker.replit.dev';
 
 // Mock data flag - set to true to use mock data instead of real API
-// Disabled to provide fresh user experience
-const USE_MOCK_DATA = false;
+// Temporarily enabled until backend is fixed
+const USE_MOCK_DATA = true;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -131,16 +131,36 @@ class ApiService {
     return this.request<Omit<User, 'password'>>(`/api/users/${userId}`);
   }
 
-  async updateUserProfile(userId: string, profile: { displayName?: string }): Promise<Omit<User, 'password'>> {
+  async updateUserProfile(userId: string, profile: { displayName?: string; homeState?: string }): Promise<Omit<User, 'password'>> {
     if (USE_MOCK_DATA) {
       await new Promise(resolve => setTimeout(resolve, 400));
       if (profile.displayName) {
         mockUser.displayName = profile.displayName;
       }
+      if (profile.homeState) {
+        mockUser.homeState = profile.homeState;
+      }
       return mockUser;
     }
     return this.request<Omit<User, 'password'>>(`/api/users/${userId}`, {
       method: 'PATCH',
+      body: JSON.stringify(profile),
+    });
+  }
+
+  async createUserProfile(profile: { username: string; displayName?: string; homeState?: string }): Promise<Omit<User, 'password'>> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const newUser = { 
+        ...mockUser, 
+        username: profile.username,
+        displayName: profile.displayName || null,
+        homeState: profile.homeState || null
+      };
+      return newUser;
+    }
+    return this.request<Omit<User, 'password'>>('/api/users', {
+      method: 'POST',
       body: JSON.stringify(profile),
     });
   }
