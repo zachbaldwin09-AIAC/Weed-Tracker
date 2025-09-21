@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Text, 
-  Searchbar, 
-  FAB, 
-  Chip, 
+  Card, 
+  Button, 
   ActivityIndicator,
-  Surface
+  Surface,
+  Divider
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,143 +21,184 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'H
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [showSavedOnly, setShowSavedOnly] = useState(false);
-
+  
   // TODO: Get current user ID - for now using a mock user ID
   const currentUserId = 'user-1';
 
   // Fetch strains from API
-  const { data: strains = [], isLoading: strainsLoading, error: strainsError } = useQuery({
+  const { data: strains = [], isLoading: strainsLoading } = useQuery({
     queryKey: ['strains'],
     queryFn: () => apiService.getAllStrains(),
   });
 
   // Fetch user experiences
-  const { data: userExperiences = [] } = useQuery({
+  const { data: userExperiences = [], isLoading: experiencesLoading } = useQuery({
     queryKey: ['userExperiences', currentUserId],
     queryFn: () => apiService.getUserStrainExperiences(currentUserId),
   });
 
-  const filteredStrains = useMemo(() => {
-    return strains.filter(strain => {
-      // Search filter
-      if (searchQuery && !strain.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false;
-      }
+  // Calculate stats
+  const userStrains = strains.filter(strain => 
+    userExperiences.some(exp => exp.strainId === strain.id)
+  );
+  
+  const likedStrains = strains.filter(strain =>
+    userExperiences.some(exp => exp.strainId === strain.id && exp.liked === true)
+  );
+  
+  const savedStrains = strains.filter(strain =>
+    userExperiences.some(exp => exp.strainId === strain.id && exp.saved === true)
+  );
 
-      // Type filter
-      if (selectedType && strain.type !== selectedType) {
-        return false;
-      }
+  // Get recent strains (last 3 that user has added experiences for)
+  const recentUserStrains = userStrains
+    .slice()
+    .sort((a, b) => {
+      const aExp = userExperiences.find(exp => exp.strainId === a.id);
+      const bExp = userExperiences.find(exp => exp.strainId === b.id);
+      return new Date(bExp?.createdAt || '').getTime() - new Date(aExp?.createdAt || '').getTime();
+    })
+    .slice(0, 3);
 
-      // Saved filter
-      if (showSavedOnly) {
-        const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
-        if (!userExperience || !userExperience.saved) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [strains, searchQuery, selectedType, showSavedOnly, userExperiences]);
-
-  const renderStrain = ({ item }: { item: Strain }) => {
-    const userExperience = userExperiences.find(exp => exp.strainId === item.id);
+  const renderStrain = (strain: Strain) => {
+    const userExperience = userExperiences.find(exp => exp.strainId === strain.id);
     return (
       <StrainCard
-        strain={item}
+        key={strain.id}
+        strain={strain}
         userExperience={userExperience}
-        onPress={() => navigation.navigate('StrainDetail', { strainId: item.id })}
+        onPress={() => navigation.navigate('StrainDetail', { strainId: strain.id })}
       />
     );
   };
 
-  const renderFilterChips = () => (
-    <View style={styles.filterContainer}>
-      <Chip
-        selected={selectedType === 'Indica'}
-        onPress={() => setSelectedType(selectedType === 'Indica' ? null : 'Indica')}
-        style={styles.chip}
-      >
-        Indica
-      </Chip>
-      <Chip
-        selected={selectedType === 'Sativa'}
-        onPress={() => setSelectedType(selectedType === 'Sativa' ? null : 'Sativa')}
-        style={styles.chip}
-      >
-        Sativa
-      </Chip>
-      <Chip
-        selected={selectedType === 'Hybrid'}
-        onPress={() => setSelectedType(selectedType === 'Hybrid' ? null : 'Hybrid')}
-        style={styles.chip}
-      >
-        Hybrid
-      </Chip>
-      <Chip
-        selected={showSavedOnly}
-        onPress={() => setShowSavedOnly(!showSavedOnly)}
-        style={styles.chip}
-      >
-        Saved Only
-      </Chip>
-    </View>
+  const renderEmptyState = () => (
+    <Card style={styles.emptyCard}>
+      <Card.Content style={styles.emptyContent}>
+        <Text variant="headlineSmall" style={styles.emptyTitle}>
+          Welcome to Strain Tracker! 🌿
+        </Text>
+        <Text variant="bodyMedium" style={styles.emptyText}>
+          Start by adding your first strain to track your cannabis experiences.
+        </Text>
+        <Button 
+          mode="contained" 
+          onPress={() => navigation.navigate('AddStrain')}
+          style={styles.emptyButton}
+        >
+          Add Your First Strain
+        </Button>
+      </Card.Content>
+    </Card>
   );
 
-  if (strainsLoading) {
+  if (strainsLoading || experiencesLoading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>Loading strains...</Text>
+        <Text style={styles.loadingText}>Loading your data...</Text>
       </View>
     );
   }
 
-  if (strainsError) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Error loading strains</Text>
-        <Text style={styles.errorSubtext}>Please try again later</Text>
-      </View>
-    );
-  }
+  const hasUserActivity = userStrains.length > 0;
 
   return (
-    <View style={styles.container}>
-      <Surface style={styles.searchSection}>
-        <Searchbar
-          placeholder="Search strains..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchbar}
-        />
-        {renderFilterChips()}
-      </Surface>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {!hasUserActivity ? (
+        renderEmptyState()
+      ) : (
+        <>
+          {/* Stats Overview */}
+          <Surface style={styles.statsContainer}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>Your Activity</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text variant="headlineMedium" style={styles.statNumber}>
+                  {userStrains.length}
+                </Text>
+                <Text variant="bodySmall" style={styles.statLabel}>
+                  Strains Tried
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text variant="headlineMedium" style={[styles.statNumber, styles.likedNumber]}>
+                  {likedStrains.length}
+                </Text>
+                <Text variant="bodySmall" style={styles.statLabel}>
+                  Liked
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text variant="headlineMedium" style={[styles.statNumber, styles.savedNumber]}>
+                  {savedStrains.length}
+                </Text>
+                <Text variant="bodySmall" style={styles.statLabel}>
+                  Saved
+                </Text>
+              </View>
+            </View>
+          </Surface>
 
-      <FlatList
-        data={filteredStrains}
-        renderItem={renderStrain}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No strains found</Text>
-            <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
-          </View>
-        }
-      />
+          {/* Quick Actions */}
+          <Surface style={styles.actionsContainer}>
+            <View style={styles.actionsRow}>
+              <Button 
+                mode="contained" 
+                onPress={() => navigation.navigate('AddStrain')}
+                style={styles.actionButton}
+              >
+                Add Strain
+              </Button>
+              <Button 
+                mode="outlined" 
+                onPress={() => navigation.navigate('Browse' as any)}
+                style={styles.actionButton}
+              >
+                Browse All
+              </Button>
+            </View>
+          </Surface>
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddStrain')}
-      />
-    </View>
+          {/* Recent Activity */}
+          {recentUserStrains.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Recent Activity
+                </Text>
+                <Button 
+                  mode="text" 
+                  onPress={() => navigation.navigate('Browse' as any)}
+                >
+                  View All
+                </Button>
+              </View>
+              {recentUserStrains.map(renderStrain)}
+            </View>
+          )}
+
+          {/* Liked Strains */}
+          {likedStrains.length > 0 && (
+            <View style={styles.section}>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
+                Your Favorites ❤️
+              </Text>
+              {likedStrains.slice(0, 2).map(renderStrain)}
+              {likedStrains.length > 2 && (
+                <Button 
+                  mode="text" 
+                  onPress={() => navigation.navigate('Browse' as any)}
+                  style={styles.viewMoreButton}
+                >
+                  View {likedStrains.length - 2} More Favorites
+                </Button>
+              )}
+            </View>
+          )}
+        </>
+      )}
+    </ScrollView>
   );
 }
 
@@ -166,63 +207,96 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fefefe',
   },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  searchSection: {
-    padding: 16,
-    elevation: 2,
-  },
-  searchbar: {
-    marginBottom: 12,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#666',
-  },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
   },
-  errorText: {
-    fontSize: 18,
+  statsContainer: {
+    padding: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  sectionTitle: {
     fontWeight: '600',
-    color: '#dc2626',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  errorSubtext: {
-    fontSize: 14,
-    color: '#666',
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  likedNumber: {
+    color: '#22c55e',
+  },
+  savedNumber: {
+    color: '#3b82f6',
+  },
+  statLabel: {
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  actionsContainer: {
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  viewMoreButton: {
+    marginTop: 8,
+  },
+  emptyCard: {
+    marginTop: 40,
+    elevation: 4,
+  },
+  emptyContent: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: 16,
+    color: '#059669',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginBottom: 24,
+    color: '#6b7280',
+    lineHeight: 20,
+  },
+  emptyButton: {
+    marginTop: 8,
   },
 });

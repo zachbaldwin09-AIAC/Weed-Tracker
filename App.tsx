@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import HomeScreen from './src/screens/HomeScreen';
+import BrowseScreen from './src/screens/BrowseScreen';
 import StrainDetailScreen from './src/screens/StrainDetailScreen';
 import AddStrainScreen from './src/screens/AddStrainScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -14,6 +15,7 @@ import { theme } from './src/theme';
 
 export type RootStackParamList = {
   Home: undefined;
+  Browse: undefined;
   StrainDetail: { strainId: string };
   AddStrain: undefined;
   Profile: undefined;
@@ -54,6 +56,11 @@ export default function App() {
                 name="Home"
                 component={HomeScreen}
                 options={{ title: 'Strain Tracker' }}
+              />
+              <Stack.Screen
+                name="Browse"
+                component={BrowseScreen}
+                options={{ title: 'Browse Strains' }}
               />
               <Stack.Screen
                 name="StrainDetail"
