@@ -153,15 +153,16 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
-    marginRight: 12,
+    marginRight: 8,
   },
   title: {
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   typeChip: {
     alignSelf: 'flex-start',
-    height: 24,
+    height: 28,
+    minWidth: 70,
   },
   actions: {
     flexDirection: 'row',
