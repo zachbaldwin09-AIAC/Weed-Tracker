@@ -12,7 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zachbaldwin09-aiac.weedtracker",
-      "buildNumber": "3",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,12 +25,6 @@
       "eas": {
         "projectId": "e875f9a0-497d-4b2c-b08e-c55002c660b8"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/e875f9a0-497d-4b2c-b08e-c55002c660b8"
     }
   }
 }
