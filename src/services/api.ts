@@ -6,7 +6,8 @@ import { mockStrains, mockUserExperiences, mockUser } from './mockData';
 const API_BASE_URL = 'https://e11f9830-1cb8-433c-9ce8-fdd0ab8d65cd-00-148f6itm8ejpe.riker.replit.dev';
 
 // Mock data flag - set to true to use mock data instead of real API
-const USE_MOCK_DATA = false;
+// Temporarily enabled while fixing backend deployment
+const USE_MOCK_DATA = true;
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
