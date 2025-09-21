@@ -11,7 +11,7 @@ if (!fs.existsSync(path.join(webDir, 'node_modules'))) {
   console.log('Installing web dependencies...');
   const installChild = spawn('npm', ['install'], { 
     stdio: 'inherit',
-    shell: true 
+    shell: false 
   });
   
   installChild.on('exit', (code) => {
@@ -29,7 +29,7 @@ function startDevServer() {
   // Use npx to ensure we use local dependencies
   const child = spawn('npx', ['tsx', 'server/index.ts'], { 
     stdio: 'inherit',
-    shell: true,
+    shell: false,
     env: { 
       ...process.env, 
       NODE_ENV: 'development',
