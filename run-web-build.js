@@ -5,7 +5,7 @@ const path = require('path');
 process.chdir(path.join(__dirname, 'web'));
 const child = spawn('npm', ['run', 'build'], { 
   stdio: 'inherit',
-  shell: true 
+  shell: false 
 });
 
 child.on('error', (error) => {
